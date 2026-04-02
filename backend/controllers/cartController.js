@@ -1,6 +1,6 @@
 import prisma from '../config/prisma.js'
 
-// ── Get cart ─────────────────────────────────────────────────
+//  Get cart 
 export const getCart = async (req, res) => {
     try {
         const cart = await prisma.cart.findUnique({
@@ -30,7 +30,7 @@ export const getCart = async (req, res) => {
     }
 }
 
-// ── Add to cart ──────────────────────────────────────────────
+//  Add to ca
 export const addToCart = async (req, res) => {
     try {
         const { productId, variantId, quantity = 1 } = req.body
@@ -79,7 +79,7 @@ export const addToCart = async (req, res) => {
     }
 }
 
-// ── Update cart item ─────────────────────────────────────────
+//  Update ca
 export const updateCartItem = async (req, res) => {
     try {
         const { quantity } = req.body
@@ -101,7 +101,7 @@ export const updateCartItem = async (req, res) => {
     }
 }
 
-// ── Remove from cart ─────────────────────────────────────────
+// Remove from cart 
 export const removeFromCart = async (req, res) => {
     try {
         await prisma.cartItem.delete({ where: { id: req.params.itemId } })
@@ -111,7 +111,7 @@ export const removeFromCart = async (req, res) => {
     }
 }
 
-// ── Clear cart ───────────────────────────────────────────────
+// Clear cart 
 export const clearCart = async (req, res) => {
     try {
         const cart = await prisma.cart.findUnique({ where: { userId: req.user.id } })

@@ -1,5 +1,6 @@
 import Stripe from 'stripe'
-import { createPaymentIntentService, handleStripeWebhookService, } from '../services/paymentService.js'
+import { createPaymentIntentService, 
+    handleStripeWebhookService, } from '../services/paymentService.js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 

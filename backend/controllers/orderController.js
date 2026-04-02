@@ -10,11 +10,11 @@ import {
     updateOrder,
     getAllOrdersDB,
     countAllOrders
-} from '../services/order.service.js'
+} from '../services/orderService.js'
 
-import { generateOrderNumber } from '../utils/order.util.js'
+import { generateOrderNumber } from '../utils/orderUtil.js'
 
-// ── Create order ─────────────────────────────────────────────
+// Create order 
 export const createOrder = async (req, res) => {
     try {
         const { addressId, couponCode, notes } = req.body
@@ -95,7 +95,7 @@ export const createOrder = async (req, res) => {
     }
 }
 
-// ── Get user orders ──────────────────────────────────────────
+// Get user orders 
 export const getMyOrders = async (req, res) => {
     try {
         const page = Number(req.query.page) || 1
@@ -116,7 +116,7 @@ export const getMyOrders = async (req, res) => {
     }
 }
 
-// ── Get single order ─────────────────────────────────────────
+// Get single order 
 export const getOrder = async (req, res) => {
     try {
         const order = await getSingleOrder(req.params.id, req.user.id)
@@ -131,7 +131,7 @@ export const getOrder = async (req, res) => {
     }
 }
 
-// ── Cancel order ─────────────────────────────────────────────
+// Cancel order 
 export const cancelOrder = async (req, res) => {
     try {
         const order = await getSingleOrder(req.params.id, req.user.id)
@@ -162,7 +162,7 @@ export const cancelOrder = async (req, res) => {
     }
 }
 
-// ── Admin: get all orders ────────────────────────────────────
+//Admin: get all orders 
 export const getAllOrders = async (req, res) => {
     try {
         const page = Number(req.query.page) || 1
@@ -186,7 +186,7 @@ export const getAllOrders = async (req, res) => {
     }
 }
 
-// ── Admin: update order status ───────────────────────────────
+//Admin: update order status 
 export const updateOrderStatus = async (req, res) => {
     try {
         const { status, note } = req.body

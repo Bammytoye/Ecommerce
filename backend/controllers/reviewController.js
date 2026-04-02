@@ -1,4 +1,4 @@
-import { upsertReview, getProductReviews } from '../services/review.service.js'
+import { upsertReview, getProductReviews } from '../services/reviewService.js'
 
 // Add review
 export const addReview = async (req, res) => {

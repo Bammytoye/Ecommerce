@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 import prisma from '../config/prisma.js'
 
-// ── Verify JWT token ─────────────────────────────────────────
+// Verify JWT token 
 export const protect = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization
@@ -35,7 +35,7 @@ export const protect = async (req, res, next) => {
     }
 }
 
-// ── Admin only ───────────────────────────────────────────────
+// Admin only
 export const adminOnly = (req, res, next) => {
     if (req.user?.role !== 'ADMIN') {
         return res.status(403).json({ error: 'Access denied, admin only' })
@@ -43,7 +43,7 @@ export const adminOnly = (req, res, next) => {
     next()
 }
 
-// ── Admin or Vendor ──────────────────────────────────────────
+// Admin or Vendor 
 export const vendorOrAdmin = (req, res, next) => {
     if (!['ADMIN', 'VENDOR'].includes(req.user?.role)) {
         return res.status(403).json({ error: 'Access denied' })

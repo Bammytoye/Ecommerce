@@ -7,31 +7,33 @@ import dotenv from 'dotenv'
 import { rateLimit } from 'express-rate-limit'
 
 // Routes
-import authRoutes from './routes/auth.js'
-import productRoutes from './routes/products.js'
-import categoryRoutes from './routes/categories.js'
-import cartRoutes from './routes/cart.js'
-import orderRoutes from './routes/orders.js'
-import paymentRoutes from './routes/payments.js'
-import userRoutes from './routes/users.js'
-import uploadRoutes from './routes/uploads.js'
-import reviewRoutes from './routes/reviews.js'
-import couponRoutes from './routes/coupons.js'
-import adminRoutes from './routes/admin.js'
+import authRouter from './routes/authRouter.js'
+import adminRouter from './routes/adminRouter.js'
+import productsRouter from './routes/productsRouter.js'
+import categoriesRouter from './routes/categoriesRouter.js'
+import cartRouter from './routes/cartRouter.js'
+import ordersRouter from './routes/ordersRouter.js'
+import paymentsRouter from './routes/paymentsRouter.js'
+import usersRouter from './routes/usersRouter.js'
+import uploadsRouter from './routes/uploadsRouter.js'
+import reviewsRouter from './routes/reviewsRouter.js'
+import couponsRouter from './routes/couponsRouter.js'
+
+
 
 dotenv.config()
 
 const app = express()
 const PORT = process.env.PORT || 5000
 
-// ── Security middleware ──────────────────────────────────────
+// Security middleware 
 app.use(helmet())
 app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:3000',
     credentials: true,
 }))
 
-// ── Rate limiting ────────────────────────────────────────────
+// Rate limiting 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100,
@@ -39,29 +41,29 @@ const limiter = rateLimit({
 })
 app.use('/api', limiter)
 
-// ── General middleware ───────────────────────────────────────
+// General middleware 
 app.use(compression())
 app.use(morgan('dev'))
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true }))
 
-// ── Health check ─────────────────────────────────────────────
-app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() })
+
+app.get('/', (req, res) => {
+    res.json({ status: 'Ecommerce backend running', timestamp: new Date().toISOString() })
 })
 
-// ── API Routes ───────────────────────────────────────────────
-app.use('/api/auth', authRoutes)
-app.use('/api/products', productRoutes)
-app.use('/api/categories', categoryRoutes)
-app.use('/api/cart', cartRoutes)
-app.use('/api/orders', orderRoutes)
-app.use('/api/payments', paymentRoutes)
-app.use('/api/users', userRoutes)
-app.use('/api/uploads', uploadRoutes)
-app.use('/api/reviews', reviewRoutes)
-app.use('/api/coupons', couponRoutes)
-app.use('/api/admin', adminRoutes)
+// API Routes 
+app.use('/api/auth', authRouter)
+app.use('/api/products', productsRouter)
+app.use('/api/categories', categoriesRouter)
+app.use('/api/cart', cartRouter)
+app.use('/api/orders', ordersRouter)
+app.use('/api/payments', paymentsRouter)
+app.use('/api/users', usersRouter)
+app.use('/api/uploads', uploadsRouter)
+app.use('/api/reviews', reviewsRouter)
+app.use('/api/coupons', couponsRouter)
+app.use('/api/admin', adminRouter)
 
 // ── 404 handler ──────────────────────────────────────────────
 app.use((req, res) => {

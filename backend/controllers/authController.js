@@ -2,14 +2,14 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import prisma from '../config/prisma.js'
 
-// ── Generate tokens ──────────────────────────────────────────
+// Generate tokens
 const generateAccessToken = (id) =>
     jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '15m' })
 
 const generateRefreshToken = (id) =>
     jwt.sign({ id }, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' })
 
-// ── Register ─────────────────────────────────────────────────
+// Register
 export const register = async (req, res) => {
     try {
         const { email, password, firstName, lastName, phone } = req.body
@@ -57,7 +57,7 @@ export const register = async (req, res) => {
     }
 }
 
-// ── Login ────────────────────────────────────────────────────
+// Login 
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body
@@ -95,7 +95,7 @@ export const login = async (req, res) => {
     }
 }
 
-// ── Refresh token ────────────────────────────────────────────
+// Refresh token 
 export const refreshToken = async (req, res) => {
     try {
         const { refreshToken: token } = req.body
@@ -115,7 +115,7 @@ export const refreshToken = async (req, res) => {
     }
 }
 
-// ── Logout ───────────────────────────────────────────────────
+//Logout 
 export const logout = async (req, res) => {
     try {
         const { refreshToken: token } = req.body
@@ -128,7 +128,7 @@ export const logout = async (req, res) => {
     }
 }
 
-// ── Get current user ─────────────────────────────────────────
+// Get current user
 export const getMe = async (req, res) => {
     try {
         const user = await prisma.user.findUnique({
@@ -144,7 +144,7 @@ export const getMe = async (req, res) => {
     }
 }
 
-// ── Change password ──────────────────────────────────────────
+// Change password 
 export const changePassword = async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body

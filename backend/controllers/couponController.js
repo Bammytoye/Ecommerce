@@ -1,4 +1,6 @@
-import { validateCouponService, createCouponService, getCouponsService, } from '../services/couponService.js'
+import { validateCouponService, 
+    createCouponService, 
+    getCouponsService, } from '../services/couponService.js'
 
 // Validate coupon
 export const validateCoupon = async (req, res) => {

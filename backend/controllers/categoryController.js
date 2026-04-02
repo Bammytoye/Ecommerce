@@ -1,4 +1,8 @@
-import { getAllCategories, getCategoryBySlug, createCategory, updateCategory } from '../services/category.service.js'
+import { getAllCategories, 
+    getCategoryBySlug, 
+    createCategory, 
+    updateCategory 
+} from '../services/categoryService.js'
 
 // Get all
 export const fetchCategories = async (req, res) => {

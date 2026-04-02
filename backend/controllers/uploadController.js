@@ -2,7 +2,7 @@ import {
     uploadSingleImage,
     uploadMultipleImages,
     deleteImageService
-} from '../services/upload.service.js'
+} from '../services/uploadService.js'
 
 // Single upload
 export const uploadImage = async (req, res) => {

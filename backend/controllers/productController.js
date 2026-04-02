@@ -1,6 +1,6 @@
 import prisma from '../config/prisma.js'
 
-// ── Get all products ─────────────────────────────────────────
+// Get all products 
 export const getProducts = async (req, res) => {
     try {
         const {
@@ -59,7 +59,7 @@ export const getProducts = async (req, res) => {
     }
 }
 
-// ── Get single product ───────────────────────────────────────
+// Get single product
 export const getProduct = async (req, res) => {
     try {
         const product = await prisma.product.findFirst({
@@ -90,7 +90,7 @@ export const getProduct = async (req, res) => {
     }
 }
 
-// ── Create product (admin) ───────────────────────────────────
+// Create product (admin) 
 export const createProduct = async (req, res) => {
     try {
         const {
@@ -119,7 +119,7 @@ export const createProduct = async (req, res) => {
     }
 }
 
-// ── Update product (admin) ───────────────────────────────────
+// Update product (admin) 
 export const updateProduct = async (req, res) => {
     try {
         const { id } = req.params
@@ -142,7 +142,7 @@ export const updateProduct = async (req, res) => {
     }
 }
 
-// ── Delete product (admin) ───────────────────────────────────
+// Delete product (admin)
 export const deleteProduct = async (req, res) => {
     try {
         await prisma.product.update({
@@ -155,7 +155,7 @@ export const deleteProduct = async (req, res) => {
     }
 }
 
-// ── Get featured products ────────────────────────────────────
+// Get featured products 
 export const getFeaturedProducts = async (req, res) => {
     try {
         const products = await prisma.product.findMany({

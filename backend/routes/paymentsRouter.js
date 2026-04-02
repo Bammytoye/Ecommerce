@@ -6,12 +6,12 @@ import {
     stripeWebhook,
 } from '../controllers/paymentController.js'
 
-const router = Router()
+const paymentsRouter = Router()
 
 // Create payment intent (user)
-router.post('/create-intent', protect, createPaymentIntent)
+paymentsRouter.post('/create-intent', protect, createPaymentIntent)
 
 // Stripe webhook (NO auth middleware)
-router.post('/webhook', stripeWebhook)
+paymentsRouter.post('/webhook', stripeWebhook)
 
-export default router
+export default paymentsRouter

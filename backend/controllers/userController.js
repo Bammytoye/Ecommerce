@@ -1,6 +1,6 @@
 import prisma from '../config/prisma.js'
 
-// ── Get profile ──────────────────────────────────────────────
+// Get profile 
 export const getProfile = async (req, res) => {
     try {
         const user = await prisma.user.findUnique({
@@ -18,7 +18,7 @@ export const getProfile = async (req, res) => {
     }
 }
 
-// ── Update profile ───────────────────────────────────────────
+// Update profile
 export const updateProfile = async (req, res) => {
     try {
         const { firstName, lastName, phone } = req.body
@@ -33,7 +33,7 @@ export const updateProfile = async (req, res) => {
     }
 }
 
-// ── Add address ──────────────────────────────────────────────
+// Add address 
 export const addAddress = async (req, res) => {
     try {
         const { fullName, phone, street, city, state, postalCode, country, type, isDefault } = req.body
@@ -55,7 +55,7 @@ export const addAddress = async (req, res) => {
     }
 }
 
-// ── Update address ───────────────────────────────────────────
+//Update address 
 export const updateAddress = async (req, res) => {
     try {
         const address = await prisma.address.findFirst({
@@ -80,7 +80,7 @@ export const updateAddress = async (req, res) => {
     }
 }
 
-// ── Delete address ───────────────────────────────────────────
+//Delete address 
 export const deleteAddress = async (req, res) => {
     try {
         await prisma.address.deleteMany({
@@ -92,7 +92,7 @@ export const deleteAddress = async (req, res) => {
     }
 }
 
-// ── Get wishlist ─────────────────────────────────────────────
+//Get wishlist 
 export const getWishlist = async (req, res) => {
     try {
         const wishlist = await prisma.wishlist.findUnique({
@@ -113,7 +113,7 @@ export const getWishlist = async (req, res) => {
     }
 }
 
-// ── Toggle wishlist item ─────────────────────────────────────
+//Toggle wishlist item 
 export const toggleWishlist = async (req, res) => {
     try {
         const { productId } = req.body
