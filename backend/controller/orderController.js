@@ -1,13 +1,18 @@
-import prisma from '../config/prisma.js'
+import {
+    getUserCart,
+    getUserAddress,
+    getCoupon,
+    createOrderDB,
+    clearCart,
+    getOrdersByUser,
+    countUserOrders,
+    getSingleOrder,
+    updateOrder,
+    getAllOrdersDB,
+    countAllOrders
+} from '../services/order.service.js'
 
-const generateOrderNumber = () => {
-    const date = new Date()
-    const y = date.getFullYear()
-    const m = String(date.getMonth() + 1).padStart(2, '0')
-    const d = String(date.getDate()).padStart(2, '0')
-    const rand = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
-    return `ORD-${y}${m}${d}-${rand}`
-}
+import { generateOrderNumber } from '../utils/order.util.js'
 
 // ── Create order ─────────────────────────────────────────────
 export const createOrder = async (req, res) => {
@@ -15,30 +20,15 @@ export const createOrder = async (req, res) => {
         const { addressId, couponCode, notes } = req.body
         const userId = req.user.id
 
-        // Get user cart
-        const cart = await prisma.cart.findUnique({
-            where: { userId },
-            include: {
-                items: {
-                    include: {
-                        product: true,
-                        variant: true,
-                    },
-                },
-            },
-        })
+        const cart = await getUserCart(userId)
 
         if (!cart || cart.items.length === 0) {
             return res.status(400).json({ error: 'Cart is empty' })
         }
 
-        // Validate address
-        const address = await prisma.address.findFirst({
-            where: { id: addressId, userId },
-        })
+        const address = await getUserAddress(addressId, userId)
         if (!address) return res.status(400).json({ error: 'Invalid address' })
 
-        // Calculate totals
         let subtotal = 0
         const orderItems = cart.items.map((item) => {
             const price = item.variant?.price || item.product.basePrice
@@ -56,12 +46,9 @@ export const createOrder = async (req, res) => {
             }
         })
 
-        // Apply coupon
         let discount = 0
         if (couponCode) {
-            const coupon = await prisma.coupon.findFirst({
-                where: { code: couponCode, isActive: true },
-            })
+            const coupon = await getCoupon(couponCode)
             if (coupon && (!coupon.minOrderAmount || subtotal >= Number(coupon.minOrderAmount))) {
                 if (coupon.discountType === 'PERCENT') {
                     discount = (subtotal * Number(coupon.discountValue)) / 100
@@ -75,8 +62,7 @@ export const createOrder = async (req, res) => {
         const tax = (subtotal - discount) * 0.075
         const total = subtotal - discount + shippingFee + tax
 
-        // Create order
-        const order = await prisma.order.create({
+        const order = await createOrderDB({
             data: {
                 orderNumber: generateOrderNumber(),
                 userId,
@@ -100,8 +86,7 @@ export const createOrder = async (req, res) => {
             },
         })
 
-        // Clear cart
-        await prisma.cartItem.deleteMany({ where: { cartId: cart.id } })
+        await clearCart(cart.id)
 
         res.status(201).json({ order })
     } catch (error) {
@@ -113,25 +98,19 @@ export const createOrder = async (req, res) => {
 // ── Get user orders ──────────────────────────────────────────
 export const getMyOrders = async (req, res) => {
     try {
-        const { page = 1, limit = 10 } = req.query
-        const skip = (Number(page) - 1) * Number(limit)
+        const page = Number(req.query.page) || 1
+        const limit = Number(req.query.limit) || 10
+        const skip = (page - 1) * limit
 
         const [orders, total] = await Promise.all([
-            prisma.order.findMany({
-                where: { userId: req.user.id },
-                skip,
-                take: Number(limit),
-                orderBy: { createdAt: 'desc' },
-                include: {
-                    items: { include: { product: { include: { images: { where: { isPrimary: true }, take: 1 } } } } },
-                    payment: true,
-                    shipment: true,
-                },
-            }),
-            prisma.order.count({ where: { userId: req.user.id } }),
+            getOrdersByUser(req.user.id, skip, limit),
+            countUserOrders(req.user.id),
         ])
 
-        res.json({ orders, pagination: { page: Number(page), limit: Number(limit), total } })
+        res.json({
+            orders,
+            pagination: { page, limit, total }
+        })
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch orders' })
     }
@@ -140,18 +119,12 @@ export const getMyOrders = async (req, res) => {
 // ── Get single order ─────────────────────────────────────────
 export const getOrder = async (req, res) => {
     try {
-        const order = await prisma.order.findFirst({
-            where: { id: req.params.id, userId: req.user.id },
-            include: {
-                items: true,
-                address: true,
-                payment: true,
-                shipment: true,
-                statusHistory: { orderBy: { createdAt: 'asc' } },
-            },
-        })
+        const order = await getSingleOrder(req.params.id, req.user.id)
 
-        if (!order) return res.status(404).json({ error: 'Order not found' })
+        if (!order) {
+            return res.status(404).json({ error: 'Order not found' })
+        }
+
         res.json({ order })
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch order' })
@@ -161,21 +134,24 @@ export const getOrder = async (req, res) => {
 // ── Cancel order ─────────────────────────────────────────────
 export const cancelOrder = async (req, res) => {
     try {
-        const order = await prisma.order.findFirst({
-            where: { id: req.params.id, userId: req.user.id },
-        })
+        const order = await getSingleOrder(req.params.id, req.user.id)
 
-        if (!order) return res.status(404).json({ error: 'Order not found' })
-        if (!['PENDING', 'CONFIRMED'].includes(order.status)) {
-            return res.status(400).json({ error: 'Order cannot be cancelled at this stage' })
+        if (!order) {
+            return res.status(404).json({ error: 'Order not found' })
         }
 
-        const updated = await prisma.order.update({
-            where: { id: order.id },
-            data: {
-                status: 'CANCELLED',
-                statusHistory: {
-                    create: { status: 'CANCELLED', note: 'Cancelled by customer' },
+        if (!['PENDING', 'CONFIRMED'].includes(order.status)) {
+            return res.status(400).json({
+                error: 'Order cannot be cancelled at this stage'
+            })
+        }
+
+        const updated = await updateOrder(order.id, {
+            status: 'CANCELLED',
+            statusHistory: {
+                create: {
+                    status: 'CANCELLED',
+                    note: 'Cancelled by customer'
                 },
             },
         })
@@ -189,26 +165,22 @@ export const cancelOrder = async (req, res) => {
 // ── Admin: get all orders ────────────────────────────────────
 export const getAllOrders = async (req, res) => {
     try {
-        const { page = 1, limit = 20, status } = req.query
-        const skip = (Number(page) - 1) * Number(limit)
+        const page = Number(req.query.page) || 1
+        const limit = Number(req.query.limit) || 20
+        const skip = (page - 1) * limit
+
+        const { status } = req.query
         const where = status ? { status } : {}
 
         const [orders, total] = await Promise.all([
-            prisma.order.findMany({
-                where,
-                skip,
-                take: Number(limit),
-                orderBy: { createdAt: 'desc' },
-                include: {
-                    user: { select: { firstName: true, lastName: true, email: true } },
-                    items: true,
-                    payment: true,
-                },
-            }),
-            prisma.order.count({ where }),
+            getAllOrdersDB(where, skip, limit),
+            countAllOrders(where),
         ])
 
-        res.json({ orders, pagination: { page: Number(page), limit: Number(limit), total } })
+        res.json({
+            orders,
+            pagination: { page, limit, total }
+        })
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch orders' })
     }
@@ -219,11 +191,10 @@ export const updateOrderStatus = async (req, res) => {
     try {
         const { status, note } = req.body
 
-        const order = await prisma.order.update({
-            where: { id: req.params.id },
-            data: {
-                status,
-                statusHistory: { create: { status, note } },
+        const order = await updateOrder(req.params.id, {
+            status,
+            statusHistory: {
+                create: { status, note }
             },
         })
 

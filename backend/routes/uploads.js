@@ -1,44 +1,18 @@
 import { Router } from 'express'
-import { v2 as cloudinary } from 'cloudinary'
+import upload from '../middleware/upload.js'
 import { protect, adminOnly } from '../middleware/auth.js'
+import {uploadImage, uploadImages, deleteImage } from '../controllers/upload.controller.js'
 
 const router = Router()
 
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-})
+// Single image
+router.post( '/single', protect, adminOnly, upload.single('image'), uploadImage )
 
-// Upload image (admin only)
-router.post('/', protect, adminOnly, async (req, res) => {
-    try {
-        const { image, folder = 'products' } = req.body
+// Multiple images
+router.post( '/multiple', protect, adminOnly, upload.array('images', 5), // max 5 files uploadImages
+)
 
-        if (!image) return res.status(400).json({ error: 'No image provided' })
-
-        const result = await cloudinary.uploader.upload(image, {
-            folder: `ecommerce/${folder}`,
-            transformation: [{ width: 800, height: 800, crop: 'limit', quality: 'auto' }],
-        })
-
-        res.json({
-            url: result.secure_url,
-            publicId: result.public_id,
-        })
-    } catch (error) {
-        res.status(500).json({ error: 'Image upload failed' })
-    }
-})
-
-// Delete image (admin only)
-router.delete('/:publicId', protect, adminOnly, async (req, res) => {
-    try {
-        await cloudinary.uploader.destroy(req.params.publicId)
-        res.json({ message: 'Image deleted' })
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to delete image' })
-    }
-})
+// Delete
+router.delete('/:publicId', protect, adminOnly, deleteImage)
 
 export default router
