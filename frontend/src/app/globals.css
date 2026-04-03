@@ -1,3 +1,102 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+    --font-display: "Playfair Display";
+    --font-body: "DM Sans";
+}
+
+@layer base {
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: var(--font-body), sans-serif;
+        background-color: #0a0a0a;
+        color: #f5f5f5;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    h1,
+    h2,
+    h3 {
+        font-family: var(--font-display), serif;
+    }
+
+    ::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #111;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #333;
+        border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #f97316;
+    }
+}
+
+@layer components {
+    .btn-primary {
+        @apply bg-primary-500 hover:bg-primary-600 text-white font-medium px-6 py-3 rounded-xl transition-all duration-200 active:scale-95;
+    }
+
+    .btn-secondary {
+        @apply bg-dark-600 hover:bg-dark-500 text-white font-medium px-6 py-3 rounded-xl transition-all duration-200 border border-white/10;
+    }
+
+    .btn-outline {
+        @apply border border-primary-500 text-primary-500 hover:bg-primary-500 hover:text-white font-medium px-6 py-3 rounded-xl transition-all duration-200;
+    }
+
+    .card {
+        @apply bg-dark-700 border border-white/5 rounded-2xl overflow-hidden;
+    }
+
+    .input {
+        @apply w-full bg-dark-600 border border-white/10 text-white placeholder-white/30 rounded-xl px-4 py-3 focus:outline-none focus:border-primary-500 transition-colors;
+    }
+
+    .badge {
+        @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+    }
+
+    .section-title {
+        @apply font-display text-3xl md:text-4xl font-semibold text-white;
+    }
+
+    .container-custom {
+        @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    }
+
+    .animate-stagger>* {
+        @apply opacity-0 animate-fade-up;
+    }
+
+    .animate-stagger>*:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .animate-stagger>*:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .animate-stagger>*:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+    .animate-stagger>*:nth-child(4) {
+        animation-delay: 0.4s;
+    }
+}

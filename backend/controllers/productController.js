@@ -1,6 +1,6 @@
 import prisma from '../config/prisma.js'
 
-// Get all products 
+// ── Get all products ─────────────────────────────────────────
 export const getProducts = async (req, res) => {
     try {
         const {
@@ -9,7 +9,6 @@ export const getProducts = async (req, res) => {
         } = req.query
 
         const skip = (Number(page) - 1) * Number(limit)
-
         const where = { isActive: true }
         if (category) where.category = { slug: category }
         if (featured) where.isFeatured = true
@@ -22,9 +21,7 @@ export const getProducts = async (req, res) => {
 
         const [products, total] = await Promise.all([
             prisma.product.findMany({
-                where,
-                skip,
-                take: Number(limit),
+                where, skip, take: Number(limit),
                 orderBy: { [sort]: order },
                 include: {
                     category: { select: { name: true, slug: true } },
@@ -38,20 +35,13 @@ export const getProducts = async (req, res) => {
 
         const productsWithRating = products.map((p) => ({
             ...p,
-            avgRating: p.reviews.length
-                ? p.reviews.reduce((a, b) => a + b.rating, 0) / p.reviews.length
-                : 0,
+            avgRating: p.reviews.length ? p.reviews.reduce((a, b) => a + b.rating, 0) / p.reviews.length : 0,
             reviewCount: p._count.reviews,
         }))
 
         res.json({
             products: productsWithRating,
-            pagination: {
-                page: Number(page),
-                limit: Number(limit),
-                total,
-                pages: Math.ceil(total / Number(limit)),
-            },
+            pagination: { page: Number(page), limit: Number(limit), total, pages: Math.ceil(total / Number(limit)) },
         })
     } catch (error) {
         console.error(error)
@@ -59,7 +49,7 @@ export const getProducts = async (req, res) => {
     }
 }
 
-// Get single product
+// ── Get single product ───────────────────────────────────────
 export const getProduct = async (req, res) => {
     try {
         const product = await prisma.product.findFirst({
@@ -81,8 +71,7 @@ export const getProduct = async (req, res) => {
         if (!product) return res.status(404).json({ error: 'Product not found' })
 
         const avgRating = product.reviews.length
-            ? product.reviews.reduce((a, b) => a + b.rating, 0) / product.reviews.length
-            : 0
+            ? product.reviews.reduce((a, b) => a + b.rating, 0) / product.reviews.length : 0
 
         res.json({ product: { ...product, avgRating } })
     } catch (error) {
@@ -90,36 +79,63 @@ export const getProduct = async (req, res) => {
     }
 }
 
-// Create product (admin) 
+// ── Create product (admin) ───────────────────────────────────
 export const createProduct = async (req, res) => {
     try {
-        const {
-            name, slug, description, basePrice, comparePrice,
-            sku, stock, categoryId, isFeatured, variants, tags
-        } = req.body
+        const { name, slug, description, basePrice, comparePrice, sku, stock, categoryId, isFeatured, isActive, variants, images } = req.body
+
+        const productData = {
+            name,
+            slug,
+            description,
+            sku,
+            basePrice: Number(basePrice),
+            comparePrice: comparePrice ? Number(comparePrice) : null,
+            stock: Number(stock) || 0,
+            categoryId,
+            isFeatured: isFeatured === true || isFeatured === 'true',
+            isActive: isActive === undefined ? true : (isActive === true || isActive === 'true'),
+        }
+
+        if (variants && variants.length > 0) {
+            productData.variants = {
+                create: variants.map((v) => ({
+                    name: v.name || 'Variant',
+                    value: v.value || '',
+                    stock: Number(v.stock) || 0,
+                    price: v.price ? Number(v.price) : undefined,
+                })),
+            }
+        }
+
+        if (images && images.length > 0) {
+            productData.images = {
+                create: images.map((img, i) => ({
+                    url: img.url,
+                    publicId: img.publicId || 'manual',
+                    altText: img.altText || null,
+                    isPrimary: i === 0,
+                    position: i,
+                })),
+            }
+        }
 
         const product = await prisma.product.create({
-            data: {
-                name, slug, description, sku,
-                basePrice: Number(basePrice),
-                comparePrice: comparePrice ? Number(comparePrice) : null,
-                stock: Number(stock) || 0,
-                categoryId, isFeatured: Boolean(isFeatured),
-                variants: variants ? { create: variants } : undefined,
-            },
-            include: { images: true, variants: true },
+            data: productData,
+            include: { images: true, variants: true, category: true },
         })
 
         res.status(201).json({ product })
     } catch (error) {
+        console.error('Create product error:', error.message)
         if (error.code === 'P2002') {
             return res.status(409).json({ error: 'Product with this slug or SKU already exists' })
         }
-        res.status(500).json({ error: 'Failed to create product' })
+        res.status(500).json({ error: error.message || 'Failed to create product' })
     }
 }
 
-// Update product (admin) 
+// ── Update product (admin) ───────────────────────────────────
 export const updateProduct = async (req, res) => {
     try {
         const { id } = req.params
@@ -142,7 +158,7 @@ export const updateProduct = async (req, res) => {
     }
 }
 
-// Delete product (admin)
+// ── Delete product (admin) ───────────────────────────────────
 export const deleteProduct = async (req, res) => {
     try {
         await prisma.product.update({
@@ -155,7 +171,7 @@ export const deleteProduct = async (req, res) => {
     }
 }
 
-// Get featured products 
+// ── Get featured products ────────────────────────────────────
 export const getFeaturedProducts = async (req, res) => {
     try {
         const products = await prisma.product.findMany({
