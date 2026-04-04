@@ -1,23 +1,19 @@
 import { Router } from 'express'
+import { createOrder, getMyOrders, getOrder, cancelOrder, getAllOrders, getAdminOrder, updateOrderStatus } from '../controllers/orderController.js'
 import { protect, adminOnly } from '../middleware/auth.js'
-import {
-    createOrder,
-    getMyOrders,
-    getOrder,
-    cancelOrder,
-    getAllOrders,
-    updateOrderStatus
-} from '../controllers/orderController.js'
 
 const ordersRouter = Router()
+ordersRouter.use(protect)
 
-ordersRouter.post('/', protect, createOrder)
-ordersRouter.get('/my', protect, getMyOrders)
-ordersRouter.get('/:id', protect, getOrder)
-ordersRouter.put('/:id/cancel', protect, cancelOrder)
+// Customer routes
+ordersRouter.post('/',             createOrder)
+ordersRouter.get('/my',            getMyOrders)
+ordersRouter.get('/my/:id',        getOrder)
+ordersRouter.put('/my/:id/cancel', cancelOrder)
 
-//admin
-ordersRouter.get('/', protect, adminOnly, getAllOrders)
-ordersRouter.put('/:id/status', protect, adminOnly, updateOrderStatus)
+// Admin routes
+ordersRouter.get('/',              adminOnly, getAllOrders)
+ordersRouter.get('/:id',           adminOnly, getAdminOrder)
+ordersRouter.put('/:id/status',    adminOnly, updateOrderStatus)
 
 export default ordersRouter

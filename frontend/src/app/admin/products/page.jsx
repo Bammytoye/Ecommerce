@@ -136,6 +136,10 @@ export default function AdminProductsPage() {
                                                     className="p-2 text-white/30 hover:text-white transition-colors" title="View">
                                                     <Eye size={16} />
                                                 </Link>
+                                                <Link href={`/admin/products/${product.id}`}
+                                                    className="p-2 text-white/30 hover:text-primary-400 transition-colors" title="Edit">
+                                                    <Edit2 size={16} />
+                                                </Link>
                                                 <button
                                                     onClick={() => handleDelete(product.id, product.name)}
                                                     className="p-2 text-white/30 hover:text-red-400 transition-colors" title="Delete">

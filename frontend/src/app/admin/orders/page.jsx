@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
 import toast from 'react-hot-toast'
 import { ShoppingCart, Search, ChevronDown } from 'lucide-react'
+import Link from 'next/link'
 
 const statusColors = {
     PENDING: 'bg-amber-500/20 text-amber-400',
@@ -80,9 +81,9 @@ export default function AdminOrdersPage() {
                         </thead>
                         <tbody>
                             {isLoading ? (
-                                Array.from({ length: 6 }).map((_, i) => (
+                                Array.from({ length: 6 }).map((none, i) => (
                                     <tr key={i} className="border-b border-white/5">
-                                        {Array.from({ length: 6 }).map((_, j) => (
+                                        {Array.from({ length: 6 }).map((none, j) => (
                                             <td key={j} className="px-6 py-4"><div className="h-4 bg-dark-600 rounded animate-pulse" /></td>
                                         ))}
                                     </tr>
@@ -100,7 +101,9 @@ export default function AdminOrdersPage() {
                                 data?.orders?.map((order) => (
                                     <tr key={order.id} className="border-b border-white/5 hover:bg-dark-700 transition-colors">
                                         <td className="px-6 py-4">
-                                            <p className="text-white text-sm font-medium">{order.orderNumber}</p>
+                                            <Link href={`/admin/orders/${order.id}`}>
+                                                <p className="text-white text-sm font-medium">{order.orderNumber}</p>
+                                            </Link>
                                         </td>
                                         <td className="px-6 py-4">
                                             <p className="text-white text-sm">{order.user?.firstName} {order.user?.lastName}</p>
@@ -113,9 +116,9 @@ export default function AdminOrdersPage() {
                                             <span className="text-white font-semibold text-sm">${Number(order.total || 0).toFixed(2)}</span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <Link href={`/admin/orders/${order.id}`} className="text-white/40 hover:text-primary-400 text-sm transition-colors">
+                                            <p className="text-white/40 hover:text-primary-400 text-sm transition-colors">
                                                 {new Date(order.createdAt).toLocaleDateString()}
-                                            </Link>
+                                            </p>
                                         </td>
                                         <td className="px-6 py-4">
                                             {updatingId === order.id ? (
