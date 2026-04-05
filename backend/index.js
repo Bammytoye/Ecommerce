@@ -19,8 +19,6 @@ import uploadsRouter from './routes/uploadsRouter.js'
 import reviewsRouter from './routes/reviewsRouter.js'
 import couponsRouter from './routes/couponsRouter.js'
 
-
-
 dotenv.config()
 
 const app = express()
@@ -32,6 +30,9 @@ app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:3000',
     credentials: true,
 }))
+
+//Stripe webhook needs raw body
+app.use('/api/payments/webhook', express.raw({ type: 'application/json' }))
 
 // Rate limiting 
 const limiter = rateLimit({

@@ -14,7 +14,7 @@ export default function Navbar() {
     const itemCount = items.reduce((sum, i) => sum + i.quantity, 0)
 
     return (
-        <nav className="sticky top-0 z-50 bg-dark-900/80 backdrop-blur-xl border-b border-white/5">
+        <nav className="sticky top-0 z-50 bg-dark-900/80 backdrop-blur-xl border-b border-white/35">
             <div className="container-custom">
                 <div className="flex items-center justify-between h-16">
 
