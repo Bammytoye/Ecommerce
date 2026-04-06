@@ -1,4 +1,10 @@
 import prisma from '../config/prisma.js'
+import {
+    sendOrderConfirmationEmail,
+    sendOrderShippedEmail,
+    sendOrderDeliveredEmail,
+    sendOrderCancelledEmail,
+} from '../services/emailService.js'
 
 const generateOrderNumber = () => {
     const date = new Date()
@@ -27,7 +33,6 @@ export const createOrder = async (req, res) => {
         const address = await prisma.address.findFirst({ where: { id: addressId, userId } })
         if (!address) return res.status(400).json({ error: 'Invalid address' })
 
-        // Calculate totals
         let subtotal = 0
         const orderItems = cart.items.map((item) => {
             const price = item.variant?.price || item.product.basePrice
@@ -38,14 +43,13 @@ export const createOrder = async (req, res) => {
                 variantId: item.variantId,
                 productName: item.product.name,
                 variantName: item.variant ? `${item.variant.name}: ${item.variant.value}` : null,
-                imageUrl: item.product.images?.[0]?.url || null,
+                imageUrl: null,
                 price: Number(price),
                 quantity: item.quantity,
                 subtotal: itemSubtotal,
             }
         })
 
-        // Apply coupon
         let discount = 0
         if (couponCode) {
             const coupon = await prisma.coupon.findFirst({ where: { code: couponCode, isActive: true } })
@@ -53,7 +57,6 @@ export const createOrder = async (req, res) => {
                 discount = coupon.discountType === 'PERCENT'
                     ? (subtotal * Number(coupon.discountValue)) / 100
                     : Number(coupon.discountValue)
-                // Increment coupon usage
                 await prisma.coupon.update({ where: { id: coupon.id }, data: { usedCount: { increment: 1 } } })
             }
         }
@@ -62,7 +65,6 @@ export const createOrder = async (req, res) => {
         const tax = (subtotal - discount) * 0.075
         const total = subtotal - discount + shippingFee + tax
 
-        // Create order
         const order = await prisma.order.create({
             data: {
                 orderNumber: generateOrderNumber(),
@@ -74,7 +76,7 @@ export const createOrder = async (req, res) => {
             include: { items: true, address: true, statusHistory: true },
         })
 
-        // ── Reduce stock ─────────────────────────────────────────
+        // Reduce stock
         for (const item of cart.items) {
             if (item.variantId) {
                 await prisma.productVariant.update({
@@ -91,6 +93,10 @@ export const createOrder = async (req, res) => {
 
         // Clear cart
         await prisma.cartItem.deleteMany({ where: { cartId: cart.id } })
+
+        // Send confirmation email
+        const user = await prisma.user.findUnique({ where: { id: userId } })
+        sendOrderConfirmationEmail({ ...order, address }, user)
 
         res.status(201).json({ order })
     } catch (error) {
@@ -177,6 +183,11 @@ export const cancelOrder = async (req, res) => {
                 statusHistory: { create: { status: 'CANCELLED', note: 'Cancelled by customer' } },
             },
         })
+
+        // Send cancellation email
+        const user = await prisma.user.findUnique({ where: { id: req.user.id } })
+        sendOrderCancelledEmail(updated, user)
+
         res.json({ order: updated })
     } catch (error) {
         res.status(500).json({ error: 'Failed to cancel order' })
@@ -196,9 +207,7 @@ export const getAllOrders = async (req, res) => {
                 orderBy: { createdAt: 'desc' },
                 include: {
                     user: { select: { firstName: true, lastName: true, email: true } },
-                    items: true,
-                    payment: true,
-                    address: true,
+                    items: true, payment: true, address: true,
                     shipment: true,
                     statusHistory: { orderBy: { createdAt: 'asc' } },
                 },
@@ -218,9 +227,7 @@ export const getAdminOrder = async (req, res) => {
             where: { id: req.params.id },
             include: {
                 user: { select: { firstName: true, lastName: true, email: true } },
-                items: true,
-                address: true,
-                payment: true,
+                items: true, address: true, payment: true,
                 shipment: true,
                 statusHistory: { orderBy: { createdAt: 'asc' } },
             },
@@ -236,13 +243,32 @@ export const getAdminOrder = async (req, res) => {
 export const updateOrderStatus = async (req, res) => {
     try {
         const { status, note } = req.body
+
         const order = await prisma.order.update({
             where: { id: req.params.id },
             data: {
                 status,
                 statusHistory: { create: { status, note: note || `Status updated to ${status}` } },
             },
+            include: { items: true, address: true, shipment: true },
         })
+
+        // Get customer
+        const user = await prisma.user.findUnique({
+            where: { id: order.userId },
+            select: { email: true, firstName: true, lastName: true },
+        })
+
+        // Send email based on status
+        if (status === 'SHIPPED') {
+            const shipment = await prisma.shipment.findUnique({ where: { orderId: order.id } })
+            sendOrderShippedEmail(order, user, shipment)
+        } else if (status === 'DELIVERED') {
+            sendOrderDeliveredEmail(order, user)
+        } else if (status === 'CANCELLED') {
+            sendOrderCancelledEmail(order, user)
+        }
+
         res.json({ order })
     } catch (error) {
         res.status(500).json({ error: 'Failed to update order status' })

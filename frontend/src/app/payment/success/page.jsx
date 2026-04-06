@@ -22,9 +22,9 @@ export default function PaymentSuccessPage() {
         <div className="min-h-screen bg-dark-900 flex items-center justify-center p-4">
             <div className="max-w-md w-full text-center">
                 {/* Success Icon */}
-                <div className="relative inline-flex mb-8">
-                    <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center">
-                        <CheckCircle size={48} className="text-green-400" />
+                <div className="relative inline-flex mb-4">
+                    <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center">
+                        <CheckCircle size={24} className="text-green-400" />
                     </div>
                     <div className="absolute inset-0 bg-green-500/10 rounded-full animate-ping" />
                 </div>
@@ -32,12 +32,12 @@ export default function PaymentSuccessPage() {
                 <h1 className="font-display text-4xl font-bold text-white mb-3">
                     Payment Successful!
                 </h1>
-                <p className="text-white/50 mb-8 text-lg">
+                <p className="text-white/50 mb-4 text-lg">
                     Your order has been confirmed and is being processed.
                 </p>
 
                 {order && (
-                    <div className="card p-6 mb-8 text-left">
+                    <div className="card p-6 mb-4 text-left">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="w-10 h-10 bg-primary-500/20 rounded-xl flex items-center justify-center">
                                 <Package size={18} className="text-primary-500" />
@@ -75,7 +75,7 @@ export default function PaymentSuccessPage() {
                     </Link>
                 </div>
 
-                <p className="text-white/30 text-sm mt-6">
+                <p className="text-white/30 text-sm mt-2">
                     A confirmation will be sent to your email address.
                 </p>
             </div>
