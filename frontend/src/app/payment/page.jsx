@@ -9,7 +9,9 @@ import toast from 'react-hot-toast'
 import { Lock, CreditCard, ArrowLeft, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+    ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+    : null
 
 const cardStyle = {
     style: {
@@ -196,6 +198,17 @@ export default function PaymentPage() {
     }, [user, orderId])
 
     if (!orderId) return null
+
+    if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+        return (
+            <div className="min-h-screen bg-dark-900 flex items-center justify-center">
+                <div className="card p-8 max-w-md text-center">
+                    <p className="text-red-400 font-medium mb-2">Stripe key not configured</p>
+                    <p className="text-white/40 text-sm">Add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to your .env.local file and restart the frontend.</p>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <Elements stripe={stripePromise}>

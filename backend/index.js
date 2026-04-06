@@ -31,8 +31,6 @@ app.use(cors({
     credentials: true,
 }))
 
-//Stripe webhook needs raw body
-app.use('/api/payments/webhook', express.raw({ type: 'application/json' }))
 
 // Rate limiting 
 const limiter = rateLimit({
@@ -41,6 +39,9 @@ const limiter = rateLimit({
     message: { error: 'Too many requests, please try again later.' },
 })
 app.use('/api', limiter)
+
+//Stripe webhook needs raw body
+app.use('/api/payments/webhook', express.raw({ type: 'application/json' }))
 
 // General middleware 
 app.use(compression())

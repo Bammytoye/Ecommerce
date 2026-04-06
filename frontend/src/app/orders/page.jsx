@@ -37,20 +37,20 @@ export default function OrdersPage() {
 
     return (
         <div className="min-h-screen bg-dark-900">
-            <div className="container-custom py-12">
-                <h1 className="section-title mb-8">My Orders</h1>
+            <div className="container-custom py-6">
+                <h1 className="section-title mb-6">My Orders</h1>
 
                 {data?.orders?.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-64 gap-4 text-white/30">
+                    <div className="flex flex-col items-center justify-center h-64 gap-2 text-white/30">
                         <Package size={48} strokeWidth={1} />
                         <p className="text-lg">No orders yet</p>
                         <Link href="/products" className="btn-primary text-sm">Start Shopping</Link>
                     </div>
                 ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-2">
                         {data?.orders?.map((order) => (
                             <div key={order.id} className="card p-6">
-                                <div className="flex items-start justify-between mb-4">
+                                <div className="flex items-start justify-between mb-0">
                                     <div>
                                         <p className="text-white font-medium">{order.orderNumber}</p>
                                         <p className="text-white/40 text-sm flex items-center gap-1 mt-1">

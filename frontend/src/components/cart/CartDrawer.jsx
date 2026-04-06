@@ -25,7 +25,7 @@ export default function CartDrawer() {
                     <div className="flex items-center gap-3">
                         <ShoppingBag size={20} className="text-primary-500" />
                         <h2 className="font-display text-xl font-semibold text-white">Your Cart</h2>
-                        <span className="badge bg-primary-500/20 text-primary-400">{items.length}</span>
+                        <span className="badge bg-primary-500/20 text-primary-400 rounded">{items.length}</span>
                     </div>
                     <button onClick={closeCart} className="p-2 text-white/40 hover:text-white transition-colors">
                         <X size={20} />
@@ -33,7 +33,7 @@ export default function CartDrawer() {
                 </div>
 
                 {/* Items */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                <div className="flex-1 overflow-y-auto p-6 space-y-2">
                     {items.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full gap-4 text-white/30">
                             <ShoppingBag size={48} strokeWidth={1} />
@@ -74,7 +74,7 @@ export default function CartDrawer() {
 
                 {/* Footer */}
                 {items.length > 0 && (
-                    <div className="p-6 border-t border-white/5 space-y-4">
+                    <div className="p-6 border-t border-white/5 space-y-2">
                         <div className="flex items-center justify-between">
                             <span className="text-white/60">Subtotal</span>
                             <span className="text-white font-semibold text-lg">${cartTotal.toFixed(2)}</span>

@@ -49,7 +49,7 @@ export default function OrderDetailPage() {
     if (!order) return (
         <div className="min-h-screen bg-dark-900 flex items-center justify-center">
             <div className="text-center text-white/40">
-                <p className="mb-4">Order not found</p>
+                <p className="mb-2">Order not found</p>
                 <Link href="/orders" className="btn-primary text-sm">Back to Orders</Link>
             </div>
         </div>
@@ -59,13 +59,13 @@ export default function OrderDetailPage() {
 
     return (
         <div className="min-h-screen bg-dark-900">
-            <div className="container-custom py-12">
+            <div className="container-custom py-6">
                 <Link href="/orders" className="inline-flex items-center gap-2 text-white/40 hover:text-white text-sm mb-8 transition-colors">
                     <ArrowLeft size={16} /> Back to Orders
                 </Link>
 
                 {/* Header */}
-                <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
+                <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
                     <div>
                         <h1 className="section-title mb-1">{order.orderNumber}</h1>
                         <p className="text-white/40 text-sm">Placed on {new Date(order.createdAt).toLocaleDateString('en-US', { dateStyle: 'long' })}</p>
@@ -85,12 +85,12 @@ export default function OrderDetailPage() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Order Items */}
-                    <div className="lg:col-span-2 space-y-6">
+                    <div className="lg:col-span-2 space-y-3">
                         <div className="card p-6">
-                            <h2 className="font-display text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                            <h2 className="font-display text-lg font-semibold text-white mb-2 flex items-center gap-2">
                                 <Package size={18} className="text-primary-500" /> Items Ordered
                             </h2>
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 {order.items?.map((item) => (
                                     <div key={item.id} className="flex gap-4 p-4 bg-dark-600 rounded-xl">
                                         <div className="w-16 h-16 bg-dark-500 rounded-lg overflow-hidden flex-shrink-0">
@@ -112,7 +112,7 @@ export default function OrderDetailPage() {
 
                         {/* Status History */}
                         <div className="card p-6">
-                            <h2 className="font-display text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                            <h2 className="font-display text-lg font-semibold text-white mb-2 flex items-center gap-2">
                                 <Clock size={18} className="text-primary-500" /> Order Timeline
                             </h2>
                             <div className="space-y-4">

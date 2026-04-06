@@ -13,7 +13,8 @@ function LayoutContent({ children }) {
   // Hide navbar on auth pages and admin pages
   const isAuthPage = pathname?.startsWith('/auth')
   const isAdminPage = pathname?.startsWith('/admin')
-  const showNavbar = !isAuthPage && !isAdminPage
+  const isPaymentPage = pathname?.startsWith('/payment')
+  const showNavbar = !isAuthPage && !isAdminPage && !isPaymentPage
 
   return (
     <>

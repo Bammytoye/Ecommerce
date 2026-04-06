@@ -1,11 +1,10 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useCartStore } from '@/store/cartStore'
 import { useAuthStore } from '@/store/authStore'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import api from '@/lib/api'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { ShoppingBag, MapPin, Tag, ArrowRight, Truck } from 'lucide-react'
 import Link from 'next/link'
@@ -19,8 +18,9 @@ export default function CheckoutPage() {
     const [couponDiscount, setCouponDiscount] = useState(0)
     const [notes, setNotes] = useState('')
 
-    useEffect(() => { if (!user) router.push('/auth/login') }, [user])
-    useEffect(() => { if (items.length === 0) router.push('/products') }, [items])
+    useEffect(() => {
+        if (!user) router.push('/auth/login')
+    }, [user])
 
     const { data: profileData } = useQuery({
         queryKey: ['profile'],
@@ -28,7 +28,6 @@ export default function CheckoutPage() {
         enabled: !!user,
     })
 
-    // Auto-select default address when profile loads
     useEffect(() => {
         if (profileData?.user?.addresses?.length > 0 && !selectedAddress) {
             const def = profileData.user.addresses.find((a) => a.isDefault)
@@ -46,6 +45,7 @@ export default function CheckoutPage() {
     const total = subtotal - couponDiscount + shippingFee + tax
 
     const validateCoupon = async () => {
+        if (!couponCode) { toast.error('Enter a coupon code'); return }
         try {
             const { data } = await api.post('/coupons/validate', { code: couponCode, orderAmount: subtotal })
             setCouponDiscount(data.discount)
@@ -56,19 +56,26 @@ export default function CheckoutPage() {
     }
 
     const placeOrder = useMutation({
-        mutationFn: () => api.post('/orders', { addressId: selectedAddress, couponCode: couponDiscount > 0 ? couponCode : undefined, notes }),
+        mutationFn: () => api.post('/orders', {
+            addressId: selectedAddress,
+            couponCode: couponDiscount > 0 ? couponCode : undefined,
+            notes: notes || undefined,
+        }),
         onSuccess: (res) => {
             const orderId = res?.data?.order?.id
             const total = res?.data?.order?.total
-            clearCart()
             toast.success('Order created! Proceeding to payment...')
             router.push(`/payment?orderId=${orderId}&amount=${total}`)
+            setTimeout(() => clearCart(), 1500)
         },
-        onError: (err) => toast.error(err.response?.data?.error || 'Failed to place order'),
+        onError: (err) => {
+            toast.error(err.response?.data?.error || 'Failed to place order')
+        },
     })
 
     const handlePlaceOrder = () => {
         if (!selectedAddress) { toast.error('Please select a delivery address'); return }
+        if (items.length === 0) { toast.error('Your cart is empty'); return }
         placeOrder.mutate()
     }
 
@@ -78,7 +85,7 @@ export default function CheckoutPage() {
                 <h1 className="section-title mb-8">Checkout</h1>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Left - Forms */}
+                    {/* Left */}
                     <div className="lg:col-span-2 space-y-6">
 
                         {/* Delivery Address */}
@@ -87,23 +94,28 @@ export default function CheckoutPage() {
                                 <MapPin size={20} className="text-primary-500" />
                                 <h2 className="font-display text-lg font-semibold text-white">Delivery Address</h2>
                             </div>
-
-                            {profileData?.user?.addresses?.length === 0 ? (
+                            {!profileData ? (
+                                <div className="h-20 bg-dark-600 rounded-xl animate-pulse" />
+                            ) : profileData?.user?.addresses?.length === 0 ? (
                                 <div className="text-center py-8">
-                                    <p className="text-white/40 mb-4">No addresses saved</p>
+                                    <p className="text-white/40 mb-4">No addresses saved yet</p>
                                     <Link href="/account" className="btn-outline text-sm">Add Address</Link>
                                 </div>
                             ) : (
                                 <div className="space-y-3">
                                     {profileData?.user?.addresses?.map((address) => (
-                                        <label key={address.id} className={`flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-colors ${selectedAddress === address.id ? 'border-primary-500 bg-primary-500/10' : 'border-white/10 hover:border-white/20'}`}>
-                                            <input type="radio" name="address" value={address.id} checked={selectedAddress === address.id} onChange={() => setSelectedAddress(address.id)} className="mt-1 accent-primary-500" />
-                                            <div>
+                                        <label key={address.id}
+                                            className={`flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-colors ${selectedAddress === address.id ? 'border-primary-500 bg-primary-500/10' : 'border-white/10 hover:border-white/20'}`}>
+                                            <input type="radio" name="address" value={address.id}
+                                                checked={selectedAddress === address.id}
+                                                onChange={() => setSelectedAddress(address.id)}
+                                                className="mt-1 accent-primary-500" />
+                                            <div className="flex-1">
                                                 <p className="text-white font-medium">{address.fullName}</p>
                                                 <p className="text-white/60 text-sm">{address.street}, {address.city}, {address.state} {address.postalCode}</p>
                                                 <p className="text-white/40 text-sm">{address.phone}</p>
                                             </div>
-                                            {address.isDefault && <span className="badge bg-primary-500/20 text-primary-400 ml-auto">Default</span>}
+                                            {address.isDefault && <span className="badge bg-primary-500/20 text-primary-400">Default</span>}
                                         </label>
                                     ))}
                                 </div>
@@ -117,7 +129,9 @@ export default function CheckoutPage() {
                                 <h2 className="font-display text-lg font-semibold text-white">Coupon Code</h2>
                             </div>
                             <div className="flex gap-3">
-                                <input className="input flex-1" placeholder="Enter coupon code (e.g. WELCOME20)" value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} />
+                                <input className="input flex-1" placeholder="e.g. WELCOME20"
+                                    value={couponCode}
+                                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())} />
                                 <button onClick={validateCoupon} className="btn-outline whitespace-nowrap">Apply</button>
                             </div>
                             {couponDiscount > 0 && (
@@ -128,19 +142,19 @@ export default function CheckoutPage() {
                         {/* Notes */}
                         <div className="card p-6">
                             <h2 className="font-display text-lg font-semibold text-white mb-4">Order Notes (optional)</h2>
-                            <textarea className="input h-24 resize-none" placeholder="Any special instructions..." value={notes} onChange={(e) => setNotes(e.target.value)} />
+                            <textarea className="input h-24 resize-none" placeholder="Any special instructions..."
+                                value={notes} onChange={(e) => setNotes(e.target.value)} />
                         </div>
                     </div>
 
-                    {/* Right - Order Summary */}
-                    <div className="space-y-4">
+                    {/* Right - Summary */}
+                    <div>
                         <div className="card p-6 sticky top-24">
                             <div className="flex items-center gap-3 mb-6">
                                 <ShoppingBag size={20} className="text-primary-500" />
                                 <h2 className="font-display text-lg font-semibold text-white">Order Summary</h2>
                             </div>
 
-                            {/* Items */}
                             <div className="space-y-3 mb-6">
                                 {items.map((item) => {
                                     const price = item.variant?.price || item.product?.basePrice || 0
@@ -159,7 +173,6 @@ export default function CheckoutPage() {
                                 })}
                             </div>
 
-                            {/* Totals */}
                             <div className="border-t border-white/5 pt-4 space-y-3">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-white/60">Subtotal</span>
@@ -188,7 +201,7 @@ export default function CheckoutPage() {
                             <button
                                 onClick={handlePlaceOrder}
                                 disabled={placeOrder.isPending || !selectedAddress}
-                                className="btn-primary w-full flex items-center justify-center gap-2 mt-6">
+                                className="btn-primary w-full flex items-center justify-center gap-2 mt-6 disabled:opacity-50 disabled:cursor-not-allowed">
                                 {placeOrder.isPending ? (
                                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                 ) : (
@@ -197,7 +210,7 @@ export default function CheckoutPage() {
                             </button>
 
                             <p className="text-white/30 text-xs text-center mt-3">
-                                By placing your order, you agree to our Terms of Service
+                                Secure checkout powered by Stripe
                             </p>
                         </div>
                     </div>
