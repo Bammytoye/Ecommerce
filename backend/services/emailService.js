@@ -5,58 +5,58 @@ const FROM = process.env.EMAIL_FROM || 'noreply@shopnest.com'
 const STORE_NAME = 'ShopNest'
 const STORE_URL = process.env.CLIENT_URL || 'http://localhost:3000'
 
-// Base email template 
+// ── Base email template ───────────────────────────────────────
 const baseTemplate = (content) => `
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${STORE_NAME}</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${STORE_NAME}</title>
 </head>
-
 <body style="margin:0;padding:0;background:#0a0a0a;font-family:'DM Sans',Arial,sans-serif;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:40px 20px;">
-        <tr>
-            <td align="center">
-                <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
-        
-            <!-- Header -->
-        <tr>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+          
+          <!-- Header -->
+          <tr>
             <td style="background:#111111;border-radius:16px 16px 0 0;padding:32px 40px;text-align:center;border-bottom:1px solid #222;">
-                <h1 style="margin:0;font-size:28px;color:#ffffff;">
+              <h1 style="margin:0;font-size:28px;color:#ffffff;">
                 Shop<span style="color:#f97316;">Nest</span>
-                </h1>
+              </h1>
             </td>
-        </tr>
+          </tr>
 
-        <!-- Content -->
-        <tr>
+          <!-- Content -->
+          <tr>
             <td style="background:#111111;padding:40px;">
-            ${content}
+              ${content}
             </td>
-        </tr>
+          </tr>
 
-        <!-- Footer -->
-        <tr>
+          <!-- Footer -->
+          <tr>
             <td style="background:#111111;border-radius:0 0 16px 16px;padding:24px 40px;text-align:center;border-top:1px solid #222;">
-                <p style="margin:0;color:#555;font-size:13px;">
+              <p style="margin:0;color:#555;font-size:13px;">
                 © ${new Date().getFullYear()} ${STORE_NAME}. All rights reserved.
-                </p>
-                    <p style="margin:8px 0 0;color:#444;font-size:12px;">
-                        <a href="${STORE_URL}" style="color:#f97316;text-decoration:none;">Visit Store</a>
-                </p>
+              </p>
+              <p style="margin:8px 0 0;color:#444;font-size:12px;">
+                <a href="${STORE_URL}" style="color:#f97316;text-decoration:none;">Visit Store</a>
+              </p>
             </td>
-        </tr>
-    </table>
-    </td>
+          </tr>
+
+        </table>
+      </td>
     </tr>
-</table>
+  </table>
 </body>
 </html>
 `
 
-//Order items table 
+// ── Order items table ─────────────────────────────────────────
 const orderItemsTable = (items) => `
 <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
   <tr>
@@ -81,7 +81,7 @@ const orderItemsTable = (items) => `
 </table>
 `
 
-//Order totals 
+// ── Order totals ──────────────────────────────────────────────
 const orderTotals = (order) => `
 <table width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0;">
   <tr>
@@ -108,7 +108,7 @@ const orderTotals = (order) => `
 </table>
 `
 
-//Button
+// ── Button ────────────────────────────────────────────────────
 const button = (text, url) => `
 <div style="text-align:center;margin:32px 0;">
   <a href="${url}" style="background:#f97316;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:12px;font-size:15px;font-weight:600;display:inline-block;">
@@ -117,25 +117,30 @@ const button = (text, url) => `
 </div>
 `
 
-//Send email helper
+// ── Send email helper ─────────────────────────────────────────
 const sendEmail = async ({ to, subject, html }) => {
-    try {
-        const result = await resend.emails.send({
-            from: `${STORE_NAME} <${FROM}>`,
-            to,
-            subject,
-            html,
-        })
-        console.log(`✉️  Email sent to ${to}: ${subject}`)
-        return result
-    } catch (error) {
-        console.error(`❌ Email failed to ${to}:`, error.message)
-    }
+  try {
+    const result = await resend.emails.send({
+      from: `${STORE_NAME} <${FROM}>`,
+      to,
+      subject,
+      html,
+    })
+    console.log(`✉️  Email sent to ${to}: ${subject}`)
+    return result
+  } catch (error) {
+    console.error(`❌ Email failed to ${to}:`, error.message)
+    // Don't throw — email failure shouldn't break the app
+  }
 }
 
-//Welcome email
+// ════════════════════════════════════════════════════════════
+//  EMAIL FUNCTIONS
+// ════════════════════════════════════════════════════════════
+
+// ── 1. Welcome email ─────────────────────────────────────────
 export const sendWelcomeEmail = async (user) => {
-    const html = baseTemplate(`
+  const html = baseTemplate(`
     <h2 style="color:#ffffff;font-size:24px;margin:0 0 16px;">Welcome to ${STORE_NAME}! 🎉</h2>
     <p style="color:#aaa;font-size:15px;line-height:1.6;margin:0 0 24px;">
       Hi ${user.firstName}, your account has been created successfully. 
@@ -149,16 +154,16 @@ export const sendWelcomeEmail = async (user) => {
     ${button('Start Shopping', STORE_URL)}
   `)
 
-    await sendEmail({
-        to: user.email,
-        subject: `Welcome to ${STORE_NAME}! 🎉`,
-        html,
-    })
+  await sendEmail({
+    to: user.email,
+    subject: `Welcome to ${STORE_NAME}! 🎉`,
+    html,
+  })
 }
 
-//Order confirmation 
+// ── 2. Order confirmation ─────────────────────────────────────
 export const sendOrderConfirmationEmail = async (order, user) => {
-    const html = baseTemplate(`
+  const html = baseTemplate(`
     <h2 style="color:#ffffff;font-size:24px;margin:0 0 8px;">Order Confirmed! ✅</h2>
     <p style="color:#aaa;font-size:15px;margin:0 0 24px;">
       Hi ${user.firstName}, we've received your order and it's being processed.
@@ -197,16 +202,16 @@ export const sendOrderConfirmationEmail = async (order, user) => {
     ${button('Track Your Order', `${STORE_URL}/orders/${order.id}`)}
   `)
 
-    await sendEmail({
-        to: user.email,
-        subject: `Order Confirmed — ${order.orderNumber}`,
-        html,
-    })
+  await sendEmail({
+    to: user.email,
+    subject: `Order Confirmed — ${order.orderNumber}`,
+    html,
+  })
 }
 
-// Payment confirmed 
+// ── 3. Payment confirmed ──────────────────────────────────────
 export const sendPaymentConfirmedEmail = async (order, user) => {
-    const html = baseTemplate(`
+  const html = baseTemplate(`
     <h2 style="color:#ffffff;font-size:24px;margin:0 0 8px;">Payment Received! 💳</h2>
     <p style="color:#aaa;font-size:15px;margin:0 0 24px;">
       Hi ${user.firstName}, your payment of <strong style="color:#f97316;">$${Number(order.total).toFixed(2)}</strong> has been confirmed.
@@ -235,16 +240,16 @@ export const sendPaymentConfirmedEmail = async (order, user) => {
     ${button('View Order', `${STORE_URL}/orders/${order.id}`)}
   `)
 
-    await sendEmail({
-        to: user.email,
-        subject: `Payment Confirmed — ${order.orderNumber} ✅`,
-        html,
-    })
+  await sendEmail({
+    to: user.email,
+    subject: `Payment Confirmed — ${order.orderNumber} ✅`,
+    html,
+  })
 }
 
-//Order shipped 
+// ── 4. Order shipped ──────────────────────────────────────────
 export const sendOrderShippedEmail = async (order, user, shipment) => {
-    const html = baseTemplate(`
+  const html = baseTemplate(`
     <h2 style="color:#ffffff;font-size:24px;margin:0 0 8px;">Your Order is On Its Way! 🚚</h2>
     <p style="color:#aaa;font-size:15px;margin:0 0 24px;">
       Hi ${user.firstName}, great news! Your order <strong style="color:#f97316;">${order.orderNumber}</strong> has been shipped.
@@ -271,16 +276,16 @@ export const sendOrderShippedEmail = async (order, user, shipment) => {
     ${button('Track Your Order', `${STORE_URL}/orders/${order.id}`)}
   `)
 
-    await sendEmail({
-        to: user.email,
-        subject: `Your Order Has Shipped! 🚚 — ${order.orderNumber}`,
-        html,
-    })
+  await sendEmail({
+    to: user.email,
+    subject: `Your Order Has Shipped! 🚚 — ${order.orderNumber}`,
+    html,
+  })
 }
 
-// Order delivered
+// ── 5. Order delivered ────────────────────────────────────────
 export const sendOrderDeliveredEmail = async (order, user) => {
-    const html = baseTemplate(`
+  const html = baseTemplate(`
     <h2 style="color:#ffffff;font-size:24px;margin:0 0 8px;">Order Delivered! 📦</h2>
     <p style="color:#aaa;font-size:15px;margin:0 0 24px;">
       Hi ${user.firstName}, your order <strong style="color:#f97316;">${order.orderNumber}</strong> has been delivered. 
@@ -298,16 +303,16 @@ export const sendOrderDeliveredEmail = async (order, user) => {
     ${button('Shop Again', STORE_URL)}
   `)
 
-    await sendEmail({
-        to: user.email,
-        subject: `Order Delivered! How was it? — ${order.orderNumber}`,
-        html,
-    })
+  await sendEmail({
+    to: user.email,
+    subject: `Order Delivered! How was it? — ${order.orderNumber}`,
+    html,
+  })
 }
 
-// Order cancelled 
+// ── 6. Order cancelled ────────────────────────────────────────
 export const sendOrderCancelledEmail = async (order, user) => {
-    const html = baseTemplate(`
+  const html = baseTemplate(`
     <h2 style="color:#ffffff;font-size:24px;margin:0 0 8px;">Order Cancelled</h2>
     <p style="color:#aaa;font-size:15px;margin:0 0 24px;">
       Hi ${user.firstName}, your order <strong style="color:#f97316;">${order.orderNumber}</strong> has been cancelled.
@@ -328,15 +333,43 @@ export const sendOrderCancelledEmail = async (order, user) => {
     </div>
 
     <p style="color:#aaa;font-size:14px;">
-        Have questions? Contact our support team.
+      Have questions? Contact our support team.
     </p>
 
-        ${button('Continue Shopping', STORE_URL)}
-    `)
+    ${button('Continue Shopping', STORE_URL)}
+  `)
 
-    await sendEmail({
-        to: user.email,
-        subject: `Order Cancelled — ${order.orderNumber}`,
-        html,
-    })
+  await sendEmail({
+    to: user.email,
+    subject: `Order Cancelled — ${order.orderNumber}`,
+    html,
+  })
+}
+
+// ── 7. Password reset ─────────────────────────────────────────
+export const sendPasswordResetEmail = async (user, resetUrl) => {
+  const html = baseTemplate(`
+    <h2 style="color:#ffffff;font-size:24px;margin:0 0 8px;">Reset Your Password 🔐</h2>
+    <p style="color:#aaa;font-size:15px;line-height:1.6;margin:0 0 24px;">
+      Hi ${user.firstName}, we received a request to reset your password. 
+      Click the button below to create a new password.
+    </p>
+
+    <div style="background:#1a1a1a;border-radius:12px;padding:20px;margin:0 0 24px;text-align:center;">
+      <p style="color:#888;font-size:13px;margin:0 0 16px;">This link expires in <strong style="color:#f97316;">1 hour</strong></p>
+      <a href="${resetUrl}" style="background:#f97316;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:12px;font-size:15px;font-weight:600;display:inline-block;">
+        Reset Password
+      </a>
+    </div>
+
+    <p style="color:#555;font-size:13px;margin:0;">
+      If you didn't request this, you can safely ignore this email. Your password won't change.
+    </p>
+  `)
+
+  await sendEmail({
+    to: user.email,
+    subject: `Reset Your ${STORE_NAME} Password`,
+    html,
+  })
 }

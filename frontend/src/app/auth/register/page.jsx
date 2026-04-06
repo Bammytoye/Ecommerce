@@ -46,17 +46,17 @@ export default function RegisterPage() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="text-white/60 text-sm mb-2 block">First Name</label>
-                                <input type="text" className="input" placeholder="John" value={form.firstName} onChange={update('firstName')} required />
+                                <input type="text" className="input" placeholder="First Name" value={form.firstName} onChange={update('firstName')} required />
                             </div>
                             <div>
                                 <label className="text-white/60 text-sm mb-2 block">Last Name</label>
-                                <input type="text" className="input" placeholder="Doe" value={form.lastName} onChange={update('lastName')} required />
+                                <input type="text" className="input" placeholder="Last Name" value={form.lastName} onChange={update('lastName')} required />
                             </div>
                         </div>
 
                         <div>
                             <label className="text-white/60 text-sm mb-2 block">Email</label>
-                            <input type="email" className="input" placeholder="you@example.com" value={form.email} onChange={update('email')} required />
+                            <input type="email" className="input" placeholder="youremail@gmail.com" value={form.email} onChange={update('email')} required />
                         </div>
 
                         <div>

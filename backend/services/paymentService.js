@@ -4,6 +4,7 @@ import { sendPaymentConfirmedEmail } from './emailService.js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
+// Create Stripe payment intent
 export const createPaymentIntentService = async (orderId, userId) => {
     const order = await prisma.order.findFirst({ where: { id: orderId, userId } })
     if (!order) return { error: 'Order not found', status: 404 }
@@ -29,6 +30,48 @@ export const createPaymentIntentService = async (orderId, userId) => {
     return { clientSecret: paymentIntent.client_secret }
 }
 
+// Confirm payment after Stripe success on frontend
+export const confirmPaymentService = async (orderId, paymentIntentId, userId) => {
+    try {
+        // Verify with Stripe
+        const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
+        if (paymentIntent.status !== 'succeeded') {
+            return { error: 'Payment not completed', status: 400 }
+        }
+
+        // Update payment record
+        await prisma.payment.update({
+            where: { orderId },
+            data: { status: 'PAID', paidAt: new Date() },
+        })
+
+        // Update order status
+        const order = await prisma.order.update({
+            where: { id: orderId },
+            data: {
+                status: 'CONFIRMED',
+                statusHistory: {
+                    create: { status: 'CONFIRMED', note: 'Payment confirmed via Stripe' },
+                },
+            },
+            include: { items: true, address: true },
+        })
+
+        // Send payment confirmed email
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { email: true, firstName: true, lastName: true },
+        })
+        sendPaymentConfirmedEmail(order, user)
+
+        return { success: true, order }
+    } catch (error) {
+        console.error('Confirm payment error:', error.message)
+        return { error: error.message, status: 500 }
+    }
+}
+
+// Handle webhook events
 export const handleStripeWebhookService = async (event) => {
     if (event.type === 'payment_intent.succeeded') {
         const { orderId } = event.data.object.metadata
@@ -42,12 +85,13 @@ export const handleStripeWebhookService = async (event) => {
             where: { id: orderId },
             data: {
                 status: 'CONFIRMED',
-                statusHistory: { create: { status: 'CONFIRMED', note: 'Payment confirmed via Stripe' } },
+                statusHistory: {
+                    create: { status: 'CONFIRMED', note: 'Payment confirmed via webhook' },
+                },
             },
             include: { items: true, address: true },
         })
 
-        // Send payment confirmed email
         const user = await prisma.user.findUnique({
             where: { id: order.userId },
             select: { email: true, firstName: true, lastName: true },

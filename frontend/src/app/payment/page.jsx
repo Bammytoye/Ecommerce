@@ -77,6 +77,11 @@ function PaymentForm({ orderId, amount }) {
             }
 
             if (paymentIntent.status === 'succeeded') {
+                // Confirm payment on backend and send email
+                await api.post('/payments/confirm', {
+                    orderId,
+                    paymentIntentId: paymentIntent.id,
+                })
                 toast.success('Payment successful! 🎉')
                 router.push(`/payment/success?orderId=${orderId}`)
             }
@@ -89,13 +94,13 @@ function PaymentForm({ orderId, amount }) {
 
     return (
         <div className="min-h-screen bg-dark-900">
-            <div className="container-custom py-12">
+            <div className="container-custom py-4">
                 <Link href="/orders" className="inline-flex items-center gap-2 text-white/40 hover:text-white text-sm mb-8 transition-colors">
                     <ArrowLeft size={16} /> Back to Orders
                 </Link>
 
                 <div className="max-w-lg mx-auto">
-                    <div className="text-center mb-8">
+                    <div className="text-center mb-3">
                         <div className="w-16 h-16 bg-primary-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
                             <CreditCard size={28} className="text-primary-500" />
                         </div>
@@ -105,7 +110,7 @@ function PaymentForm({ orderId, amount }) {
 
                     {/* Order Summary */}
                     {orderDetails && (
-                        <div className="card p-4 mb-6">
+                        <div className="card p-4 mb-3">
                             <div className="flex items-center justify-between mb-3">
                                 <p className="text-white/60 text-sm">Order</p>
                                 <p className="text-white font-medium text-sm">{orderDetails.orderNumber}</p>
@@ -132,7 +137,7 @@ function PaymentForm({ orderId, amount }) {
                     <div className="card p-6">
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div>
-                                <label className="text-white/60 text-sm mb-3 block flex items-center gap-2">
+                                <label className="text-white/60 text-sm mb-3 block items-center gap-2">
                                     <CreditCard size={14} /> Card Details
                                 </label>
                                 <div className="bg-dark-600 border border-white/10 rounded-xl p-4 focus-within:border-primary-500 transition-colors">

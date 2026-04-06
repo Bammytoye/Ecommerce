@@ -44,7 +44,7 @@ export default function LoginPage() {
                             <input
                                 type="email"
                                 className="input"
-                                placeholder="you@example.com"
+                                placeholder="youremail@gmail.com"
                                 value={form.email}
                                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                                 required
@@ -52,7 +52,12 @@ export default function LoginPage() {
                         </div>
 
                         <div>
-                            <label className="text-white/60 text-sm mb-2 block">Password</label>
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="text-white/60 text-sm">Password</label>
+                                <Link href="/auth/forgot-password" className="text-primary-400 hover:text-primary-300 text-xs transition-colors">
+                                    Forgot password?
+                                </Link>
+                            </div>
                             <div className="relative">
                                 <input
                                     type={showPassword ? 'text' : 'password'}

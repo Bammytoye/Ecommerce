@@ -9,7 +9,7 @@ const generateAccessToken = (id) =>
 const generateRefreshToken = (id) =>
     jwt.sign({ id }, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' })
 
-//Register
+// ── Register ─────────────────────────────────────────────────
 export const register = async (req, res) => {
     try {
         const { email, password, firstName, lastName, phone } = req.body
@@ -50,7 +50,7 @@ export const register = async (req, res) => {
     }
 }
 
-//Login
+// ── Login ────────────────────────────────────────────────────
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body
@@ -77,7 +77,7 @@ export const login = async (req, res) => {
     }
 }
 
-//Refresh token
+// ── Refresh token ────────────────────────────────────────────
 export const refreshToken = async (req, res) => {
     try {
         const { refreshToken: token } = req.body
@@ -96,7 +96,7 @@ export const refreshToken = async (req, res) => {
     }
 }
 
-//Logout 
+// ── Logout ───────────────────────────────────────────────────
 export const logout = async (req, res) => {
     try {
         const { refreshToken: token } = req.body
@@ -107,7 +107,7 @@ export const logout = async (req, res) => {
     }
 }
 
-//Get current user 
+// ── Get current user ─────────────────────────────────────────
 export const getMe = async (req, res) => {
     try {
         const user = await prisma.user.findUnique({
@@ -123,7 +123,7 @@ export const getMe = async (req, res) => {
     }
 }
 
-//Change password 
+// ── Change password ──────────────────────────────────────────
 export const changePassword = async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body
@@ -139,5 +139,90 @@ export const changePassword = async (req, res) => {
         res.json({ message: 'Password changed successfully' })
     } catch (error) {
         res.status(500).json({ error: 'Failed to change password' })
+    }
+}
+
+// ── Forgot password ──────────────────────────────────────────
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body
+        if (!email) return res.status(400).json({ error: 'Email is required' })
+
+        const user = await prisma.user.findUnique({ where: { email } })
+
+        // Always return success to prevent email enumeration
+        if (!user) {
+            return res.json({ message: 'If this email exists, a reset link has been sent.' })
+        }
+
+        // Generate reset token
+        const crypto = await import('crypto')
+        const token = crypto.randomBytes(32).toString('hex')
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
+
+        // Delete any existing tokens for this user
+        await prisma.passwordResetToken.deleteMany({ where: { userId: user.id } })
+
+        // Create new token
+        await prisma.passwordResetToken.create({
+            data: { token, userId: user.id, expiresAt },
+        })
+
+        const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/auth/reset-password?token=${token}`
+
+        // Send email
+        const { sendPasswordResetEmail } = await import('../services/emailService.js')
+        sendPasswordResetEmail(user, resetUrl)
+
+        res.json({ message: 'If this email exists, a reset link has been sent.' })
+    } catch (error) {
+        console.error('Forgot password error:', error)
+        res.status(500).json({ error: 'Failed to process request' })
+    }
+}
+
+// ── Reset password ───────────────────────────────────────────
+export const resetPassword = async (req, res) => {
+    try {
+        const { token, password } = req.body
+
+        if (!token || !password) {
+            return res.status(400).json({ error: 'Token and password are required' })
+        }
+        if (password.length < 8) {
+            return res.status(400).json({ error: 'Password must be at least 8 characters' })
+        }
+
+        const resetToken = await prisma.passwordResetToken.findUnique({
+            where: { token },
+            include: { user: true },
+        })
+
+        if (!resetToken) return res.status(400).json({ error: 'Invalid reset token' })
+        if (resetToken.used) return res.status(400).json({ error: 'Reset token already used' })
+        if (resetToken.expiresAt < new Date()) return res.status(400).json({ error: 'Reset token has expired' })
+
+        // Update password
+        const bcrypt = await import('bcryptjs')
+        const passwordHash = await bcrypt.hash(password, 12)
+
+        await prisma.user.update({
+            where: { id: resetToken.userId },
+            data: { passwordHash },
+        })
+
+        // Mark token as used
+        await prisma.passwordResetToken.update({
+            where: { token },
+            data: { used: true },
+        })
+
+        // Invalidate all refresh tokens
+        await prisma.refreshToken.deleteMany({ where: { userId: resetToken.userId } })
+
+        res.json({ message: 'Password reset successfully. You can now log in.' })
+    } catch (error) {
+        console.error('Reset password error:', error)
+        res.status(500).json({ error: 'Failed to reset password' })
     }
 }
