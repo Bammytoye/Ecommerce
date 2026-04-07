@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { useAuthStore } from '@/store/authStore.js'
+import { useAuthStore } from '@/store/authStore'
 import { useCartStore } from '@/store/cartStore'
 import { ShoppingCart, User, Search, Menu, X, Heart, LogOut } from 'lucide-react'
 import { useState } from 'react'
@@ -14,7 +14,7 @@ export default function Navbar() {
     const itemCount = items.reduce((sum, i) => sum + i.quantity, 0)
 
     return (
-        <nav className="sticky top-0 z-50 bg-dark-900/80 backdrop-blur-xl border-b border-white/35">
+        <nav className="sticky top-0 z-50 bg-dark-900/80 backdrop-blur-xl border-b border-white/5">
             <div className="container-custom">
                 <div className="flex items-center justify-between h-16">
 
@@ -28,7 +28,7 @@ export default function Navbar() {
                         <Link href="/products" className="text-white/60 hover:text-white text-sm transition-colors">Products</Link>
                         <Link href="/products?category=electronics" className="text-white/60 hover:text-white text-sm transition-colors">Electronics</Link>
                         <Link href="/products?category=clothing" className="text-white/60 hover:text-white text-sm transition-colors">Clothing</Link>
-                        <Link href="/products?featured=true" className="text-white/60 hover:text-white text-sm transition-colors">Featured</Link>
+                        <Link href="/featured" className="text-white/60 hover:text-white text-sm transition-colors">Featured</Link>
                     </div>
 
                     {/* Actions */}
@@ -103,7 +103,11 @@ export default function Navbar() {
                 {menuOpen && (
                     <div className="md:hidden border-t border-white/5 py-4 space-y-2">
                         {['Products', 'Electronics', 'Clothing', 'Featured'].map((item) => (
-                            <Link key={item} href={`/products${item !== 'Products' ? `?category=${item.toLowerCase()}` : ''}`}
+                            <Link key={item} href={
+                                item === 'Products' ? '/products' :
+                                    item === 'Featured' ? '/featured' :
+                                        `/products?category=${item.toLowerCase()}`
+                            }
                                 className="block px-4 py-2 text-white/60 hover:text-white text-sm"
                                 onClick={() => setMenuOpen(false)}>
                                 {item}

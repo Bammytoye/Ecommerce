@@ -33,9 +33,9 @@ export default function ProductsPage() {
 
     return (
         <div className="min-h-screen bg-dark-900">
-            <div className="container-custom py-12">
+            <div className="container-custom py-4">
                 {/* Header */}
-                <div className="mb-8">
+                <div className="mb-4">
                     <h1 className="section-title mb-2">All Products</h1>
                     <p className="text-white/40">{data?.pagination?.total || 0} products found</p>
                 </div>
