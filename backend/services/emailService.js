@@ -134,11 +134,7 @@ const sendEmail = async ({ to, subject, html }) => {
   }
 }
 
-// ════════════════════════════════════════════════════════════
-//  EMAIL FUNCTIONS
-// ════════════════════════════════════════════════════════════
-
-// ── 1. Welcome email ─────────────────────────────────────────
+// Welcome email ─────────────────────────────────────────
 export const sendWelcomeEmail = async (user) => {
   const html = baseTemplate(`
     <h2 style="color:#ffffff;font-size:24px;margin:0 0 16px;">Welcome to ${STORE_NAME}! 🎉</h2>
