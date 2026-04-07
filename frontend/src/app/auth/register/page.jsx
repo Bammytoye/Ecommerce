@@ -94,6 +94,13 @@ export default function RegisterPage() {
                         Already have an account?{' '}
                         <Link href="/auth/login" className="text-primary-400 hover:text-primary-300 transition-colors">Sign in</Link>
                     </p>
+
+                    <p className="text-white/40 text-sm text-center mt-0">
+                        Click here to go back to {' '} 
+                        <Link href="/" className="text-primary-400 hover:text-primary-300 transition-colors">
+                            Home Page
+                        </Link>
+                    </p>
                 </div>
             </div>
         </div>

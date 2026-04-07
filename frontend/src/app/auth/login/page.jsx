@@ -92,6 +92,13 @@ export default function LoginPage() {
                             Register
                         </Link>
                     </p>
+
+                    <p className="text-white/40 text-sm text-center mt-0">
+                        Click here to go back to {' '} 
+                        <Link href="/" className="text-primary-400 hover:text-primary-300 transition-colors">
+                            Home Page
+                        </Link>
+                    </p>
                 </div>
             </div>
         </div>
